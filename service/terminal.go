@@ -35,7 +35,7 @@ func (t *terminal) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	client, err := K8s.GetClient(cluster)
 	// 加载k8s配置
-	conf, err := clientcmd.BuildConfigFromFlags("", K8s.KubeConfMap[cluster])
+	conf, err := clientcmd.BuildConfigFromFlags("", K8s.GetClusterConf(cluster))
 	if err != nil {
 		fmt.Printf("加载k8s配置失败, %s\n", err.Error())
 		return
@@ -71,8 +71,8 @@ func (t *terminal) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 			Stderr:    true,
 			TTY:       true,
 		}, scheme.ParameterCodec)
-	fmt.Println(req.URL())
-	fmt.Printf("exec post request url: %v\n", req)
+	//fmt.Println(req.URL())
+	//fmt.Printf("exec post request url: %v\n", req)
 
 	// remotecommand 主要实现了http 转 SPDY 添加X-Stream-Protocol-Version相关header 并发送请求
 	executor, err := remotecommand.NewSPDYExecutor(conf, "POST", req.URL())

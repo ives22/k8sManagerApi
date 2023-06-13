@@ -18,7 +18,7 @@ func (d *download) DownloadHandler(ctx *gin.Context) {
 	fileName := ctx.Param("filename") // 从URL中获取文件名
 	fmt.Printf("文件名：%v\n", fileName)
 	// 拼接文件路径
-	filePath := filepath.Join(config.UploadPath, fileName)
+	filePath := filepath.Join(config.Conf.UploadPath, fileName)
 	// 判断文件是否存在
 	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {

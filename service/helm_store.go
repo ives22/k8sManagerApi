@@ -88,7 +88,8 @@ func (h *helmStore) InstallRelease(actionConfig *action.Configuration, release, 
 	client.Namespace = namespace
 	splitChart := strings.Split(chart, ".")
 	if splitChart[len(splitChart)-1] == "tgz" && strings.Contains(chart, ":") {
-		chart = config.UploadPath + "/" + chart
+		//chart = config.UploadPath + "/" + chart
+		chart = config.Conf.UploadPath + chart
 	}
 	// 拼接网络路径
 	//chart = fmt.Sprintf("http://192.168.101.101:9091/download/%v", chart)
@@ -127,7 +128,9 @@ func (h *helmStore) UploadChartFile(file multipart.File, header *multipart.FileH
 		fmt.Println("Chart文件必须以.tgz结尾")
 		return errors.New(fmt.Sprintf("Chart文件必须以.tgz结尾"))
 	}
-	filePath := config.UploadPath + "/" + filename
+
+	//filePath := config.UploadPath + "/" + filename
+	filePath := config.Conf.UploadPath + filename
 	_, err := os.Stat(filePath)
 	if os.IsExist(err) {
 		fmt.Println("Chart文件已存在")
@@ -149,7 +152,8 @@ func (h *helmStore) UploadChartFile(file multipart.File, header *multipart.FileH
 
 // DeleteChartFile Chart文件删除
 func (h *helmStore) DeleteChartFile(chart string) error {
-	filePath := config.UploadPath + "/" + chart
+	//filePath := config.UploadPath + "/" + chart
+	filePath := config.Conf.UploadPath + chart
 	_, err := os.Stat(filePath)
 	if err != nil || os.IsNotExist(err) {
 		fmt.Println("Chart文件不存在")

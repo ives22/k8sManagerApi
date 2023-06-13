@@ -1,0 +1,26 @@
+
+# 监听地址
+listenAddr: 127.0.0.1:9091
+# WebSocket配置
+WSAddr: 127.0.0.1:9092
+WSPath: /ws
+# Pod查看日志的行数
+podLogTailLine: 2000
+# helm文件上传路径
+uploadPath: /Users/liyanjie/Documents/
+kubeConfigs:
+  - name: TST-1
+    path: /Users/liyanjie/Documents/config
+  - name: TST-2
+    path: /Users/liyanjie/Documents/configw
+#  - name: TST-3
+#    path: /Users/liyanjie/Documents/configyb
+
+# Mysql数据库连接配置
+mysql:
+  host: 124.71.33.240
+  port: 3306
+  username: root
+  password: admin123
+  database: k8s
+  charset: utf8

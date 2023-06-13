@@ -16,6 +16,13 @@ import (
 )
 
 func main() {
+
+	// 初始化配置文件
+	config.Init()
+
+	//// 测试配置文件是否成功加载
+	//fmt.Println("Listen Addr: ", config.Conf.ListenAddr)
+
 	// 初始化数据库
 	mysql.Init()
 
@@ -36,17 +43,20 @@ func main() {
 
 	// 终端websocket
 	go func() {
-		http.HandleFunc(config.WSPath, service.Terminal.WebsocketHandler)
-		http.ListenAndServe(config.WSAddr, nil)
+		http.HandleFunc(config.Conf.WSPath, service.Terminal.WebsocketHandler)
+		http.ListenAndServe(config.Conf.WSAddr, nil)
 	}()
 
 	// event任务，用于监听event并写入数据库，这里传入的参数是集群名，与config配置文件中集群名对齐
-	go func() {
-		service.Event.WatchEventTask("TST-1")
-	}()
 	//go func() {
-	//	service.Event.WatchEventTask("TST-2")
+	//	service.Event.WatchEventTask("TST-1")
 	//}()
+	// event任务，用于监听event并写入数据库，循环从配置文件中读取集群名，启动g oroutin 任务
+	for _, cInfo := range config.Conf.KubeConfigs {
+		go func(clusterName string) {
+			service.Event.WatchEventTask(clusterName)
+		}(cInfo.Name)
+	}
 
 	// 数据库测试
 	//data, _ := dao.User.GetUserByName("zhangsan")
@@ -55,7 +65,7 @@ func main() {
 	//	启动gin server
 	//r.Run(config.ListerAddr)
 	srv := &http.Server{
-		Addr:    config.ListerAddr,
+		Addr:    config.Conf.ListenAddr,
 		Handler: r,
 	}
 	go func() {

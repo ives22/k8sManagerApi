@@ -135,7 +135,7 @@ func (p *pod) GetPodContainer(client *kubernetes.Clientset, podName, namespace s
 // GetPodLog 获取容器的日志
 func (p *pod) GetPodLog(client *kubernetes.Clientset, containerName, podName, namespace string) (Log string, err error) {
 	// 设置日志的配置，容器名，获取的内容的配置
-	lineLimit := int64(config.PodLogTailLine)
+	lineLimit := int64(config.Conf.PodLogLine)
 	option := &corev1.PodLogOptions{
 		Container: containerName,
 		TailLines: &lineLimit,

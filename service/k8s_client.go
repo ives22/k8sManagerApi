@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"k8s.io/client-go/kubernetes"
@@ -28,25 +27,31 @@ func (k *k8s) GetClient(cluster string) (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
+// GetClusterConf 获取指定集群的配置文件
+func (k *k8s) GetClusterConf(cluster string) (clusterConf string) {
+	for _, conf := range config.Conf.KubeConfigs {
+		if conf.Name == cluster {
+			clusterConf = conf.Path
+			return clusterConf
+		}
+	}
+	return ""
+}
+
 // Init 初始化
 func (k *k8s) Init() {
-	mp := map[string]string{}
 	k.ClientMap = map[string]*kubernetes.Clientset{}
-	if err := json.Unmarshal([]byte(config.KubeConfigs), &mp); err != nil {
-		panic(fmt.Sprintf("Kubeconfigs反序列化失败 %v\n", err))
-	}
-	k.KubeConfMap = mp
-	// 根据配置文件中配置的多个集群，循环进行初始化
-	for key, value := range mp {
-		conf, err := clientcmd.BuildConfigFromFlags("", value)
+	// 根据配置文件中的多个集群，循环进行初始化
+	for _, cluster := range config.Conf.KubeConfigs {
+		conf, err := clientcmd.BuildConfigFromFlags("", cluster.Path)
 		if err != nil {
-			panic(fmt.Sprintf("集群%s: 创建K8s 配置失败 %v", key, err))
+			panic(fmt.Sprintf("集群%s: 创建K8s 配置失败 %v", cluster.Name, cluster.Path))
 		}
 		clientSet, err := kubernetes.NewForConfig(conf)
 		if err != nil {
-			panic(fmt.Sprintf("集群%s: 创建K8s client失败 %v", key, err))
+			panic(fmt.Sprintf("集群%s: 创建K8s client失败 %v", cluster.Name, cluster.Path))
 		}
-		k.ClientMap[key] = clientSet
-		fmt.Printf("集群%s: 创建K8s client成功\n", key)
+		k.ClientMap[cluster.Name] = clientSet
+		fmt.Printf("集群%s: 创建K8s client成功\n", cluster.Name)
 	}
 }
