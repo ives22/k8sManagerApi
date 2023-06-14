@@ -24,3 +24,11 @@ mysql:
   password: admin123
   database: k8s
   charset: utf8
+
+# 日志相关配置
+log:
+  level: debug
+  file_name: app.log
+  max_size: 1024
+  max_age: 7
+  max_backups: 10

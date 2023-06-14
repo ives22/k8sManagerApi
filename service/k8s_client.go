@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8sManagerApi/config"
@@ -21,7 +22,7 @@ type k8s struct {
 func (k *k8s) GetClient(cluster string) (*kubernetes.Clientset, error) {
 	client, ok := k.ClientMap[cluster]
 	if !ok {
-		fmt.Printf("集群不存在: %s，无法获取client\n", cluster)
+		zap.L().Error("cluster not found", zap.String("cluster", cluster))
 		return nil, errors.New(fmt.Sprintf("集群不存在: %s, 无法获取client", cluster))
 	}
 	return client, nil
@@ -45,13 +46,15 @@ func (k *k8s) Init() {
 	for _, cluster := range config.Conf.KubeConfigs {
 		conf, err := clientcmd.BuildConfigFromFlags("", cluster.Path)
 		if err != nil {
+			zap.L().Error("create k8s client config failed", zap.String("cluster", cluster.Name))
 			panic(fmt.Sprintf("集群%s: 创建K8s 配置失败 %v", cluster.Name, cluster.Path))
 		}
 		clientSet, err := kubernetes.NewForConfig(conf)
 		if err != nil {
+			zap.L().Error("create k8s client failed", zap.String("cluster", cluster.Name))
 			panic(fmt.Sprintf("集群%s: 创建K8s client失败 %v", cluster.Name, cluster.Path))
 		}
 		k.ClientMap[cluster.Name] = clientSet
-		fmt.Printf("集群%s: 创建K8s client成功\n", cluster.Name)
+		zap.L().Info("create k8s client successfully", zap.String("cluster", cluster.Name))
 	}
 }

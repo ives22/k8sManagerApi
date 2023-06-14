@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/config"
 	"k8sManagerApi/controller"
 	"k8sManagerApi/db/mysql"
+	"k8sManagerApi/logger"
 	"k8sManagerApi/middle"
 	"k8sManagerApi/service"
 	"net/http"
@@ -23,6 +25,12 @@ func main() {
 	//// 测试配置文件是否成功加载
 	//fmt.Println("Listen Addr: ", config.Conf.ListenAddr)
 
+	// 初始化日志
+	if err := logger.InitLogger(config.Conf.LogConfig); err != nil {
+		fmt.Printf("init logger failed, err:%v\n", err.Error())
+		return
+	}
+
 	// 初始化数据库
 	mysql.Init()
 
@@ -30,6 +38,7 @@ func main() {
 	service.K8s.Init()
 	//service.K8sA.Init()
 
+	gin.SetMode(gin.ReleaseMode)
 	//	初始化gin
 	r := gin.Default()
 
@@ -37,6 +46,8 @@ func main() {
 	r.Use(middle.Cors())
 	// 注册中间件，加载jwt中间件
 	r.Use(middle.JWTAuth())
+	// 注册中间件，zap相关中间件
+	r.Use(logger.GinLogger(), logger.GinRecovery(true))
 
 	//	跨包调用router的初始化方法
 	controller.Router.InitApiRouter(r)
@@ -73,16 +84,21 @@ func main() {
 			fmt.Printf("listen: %v\n", err)
 		}
 	}()
+
+	zap.L().Info("start gin server success", zap.String("listen", config.Conf.ListenAddr))
 	// 等待中断信号，优雅关闭所有server
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
 	// 设置ctx超时
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 	// cancel用于释放ctx
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		fmt.Printf("Gin Server关闭异常: %v\n", err)
+		zap.L().Error(fmt.Sprintf("shutdown gin server failed, err: %v", err.Error()))
 	}
-	fmt.Println("Gin Server关闭成功")
+
+	zap.L().Info("shutdown gin server success")
 }

@@ -66,13 +66,13 @@ func onAdd(obj interface{}, cluster string) {
 		return
 	}
 	if has {
-		fmt.Printf("Event数据已存在, %s %s %s %s %v %s\n",
-			event.InvolvedObject.Name,
-			event.InvolvedObject.Kind,
-			event.InvolvedObject.Namespace,
-			event.Reason,
-			event.CreationTimestamp.Time,
-			cluster)
+		//fmt.Printf("Event数据已存在, %s %s %s %s %v %s\n",
+		//	event.InvolvedObject.Name,
+		//	event.InvolvedObject.Kind,
+		//	event.InvolvedObject.Namespace,
+		//	event.Reason,
+		//	event.CreationTimestamp.Time,
+		//	cluster)
 		return
 	}
 	// 组装数据

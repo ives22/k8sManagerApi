@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 // Conf 全局变量，存放配置信息
@@ -27,10 +28,14 @@ func Init() {
 	v := viper.New()
 	v.SetConfigFile(configFileName)
 
+	fmt.Printf("当前使用的配置文件: %s\n", configFileName)
+	//zap.L().Info(fmt.Sprintf("当前使用的配置文件: %s", configFileName))
+
 	// 读取配置文件
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
+			zap.L().Error("Config file not found")
 			panic("Config file not found")
 		} else {
 			// Config file was found but another error was produced

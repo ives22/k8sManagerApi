@@ -8,6 +8,7 @@ type ServerConfig struct {
 	UploadPath  string        `mapstructure:"uploadPath"`
 	KubeConfigs []*Kubeconfig `mapstructure:"KubeConfigs"`
 	MysqlInfo   *MysqlConfig  `mapstructure:"mysql"`
+	LogConfig   *LogConfig    `mapstructure:"log"`
 }
 
 type Kubeconfig struct {
@@ -22,4 +23,14 @@ type MysqlConfig struct {
 	Password string `mapstructure:"password"`
 	Database string `mapstructure:"database"`
 	Charset  string `mapstructure:"charset"`
+}
+
+// LogConfig 日志配置
+type LogConfig struct {
+	Level      string `mapstructure:"level"`
+	Filename   string `mapstructure:"fileName"`
+	MaxSize    int    `mapstructure:"maxSize"`
+	MaxAge     int    `mapstructure:"maxAge"`
+	MaxBackups int    `mapstructure:"maxBackups"`
+	Compress   bool   `mapstructure:"compress"`
 }

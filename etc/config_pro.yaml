@@ -11,12 +11,14 @@ uploadPath: /Users/liyanjie/Documents/
 kubeConfigs:
   - name: TST-1
     path: /Users/liyanjie/Documents/config
-  - name: TST-2
-    path: /Users/liyanjie/Documents/configw
-#  - name: TST-3
-#    path: /Users/liyanjie/Documents/configyb
+#  - name: TST-2
+#    path: /Users/liyanjie/Documents/configw
+  - name: TST-3
+    path: /Users/liyanjie/Documents/configyb
 
+################################################################
 # Mysql数据库连接配置
+################################################################
 mysql:
   host: 124.71.33.240
   port: 3306
@@ -24,3 +26,20 @@ mysql:
   password: admin123
   database: k8s
   charset: utf8
+
+################################################################
+# 日志相关配置
+################################################################
+log:
+  # 日志级别
+  level: debug
+  # 日志文件名
+  fileName: app.log
+  # 每个日志文件保存的大小 单位：MB
+  maxSize: 1
+  # 日志文件最多保留多少天
+  maxAge: 7
+  # 日志文件最多保存多少个备份
+  maxBackups: 10
+  # 是否开启压缩
+  compress: true
