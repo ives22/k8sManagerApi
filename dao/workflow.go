@@ -3,6 +3,7 @@ package dao
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"k8sManagerApi/db/mysql"
 	"k8sManagerApi/model"
 )
@@ -30,7 +31,7 @@ func (w *workflow) GetWorkflows(filterName, namespace, cluster string, limit, pa
 		Find(&workflowList)
 	//gorm会默认把空数据也放到err中，故这里要排除空数据的情况
 	if tx.Error != nil && tx.Error.Error() != "record not found" {
-		fmt.Printf("获取workflow列表失败,%v\n", tx.Error.Error())
+		zap.L().Error(fmt.Sprintf("获取workflow列表失败, %v", tx.Error.Error()))
 		return nil, errors.New("获取workflow列表失败," + tx.Error.Error())
 	}
 	data = &WorkflowResponse{
@@ -45,7 +46,7 @@ func (w *workflow) GetById(id int) (workflow *model.Workflow, err error) {
 	workflow = &model.Workflow{}
 	tx := mysql.DB.Where("id =?", id).First(&workflow)
 	if tx.Error != nil && tx.Error.Error() != "record not found" {
-		fmt.Printf("获取workflow单条数据失败,%v\n", tx.Error.Error())
+		zap.L().Error(fmt.Sprintf("获取workflow单条数据失败, %v", tx.Error.Error()))
 		return nil, errors.New("获取workflow单条数据失败," + tx.Error.Error())
 	}
 	return workflow, nil
@@ -55,7 +56,7 @@ func (w *workflow) GetById(id int) (workflow *model.Workflow, err error) {
 func (w *workflow) Add(workflow *model.Workflow) (err error) {
 	tx := mysql.DB.Create(&workflow)
 	if tx.Error != nil && tx.Error.Error() != "record not found" {
-		fmt.Printf("添加workflow失败,%v\n", tx.Error.Error())
+		zap.L().Error(fmt.Sprintf("添加workflow失败, %v", tx.Error.Error()))
 		return errors.New("添加workflow失败," + tx.Error.Error())
 	}
 	return nil
@@ -72,7 +73,7 @@ func (w *workflow) Add(workflow *model.Workflow) (err error) {
 func (w *workflow) DelById(id int) (err error) {
 	tx := mysql.DB.Where("id = ?", id).Delete(&model.Workflow{})
 	if tx.Error != nil && tx.Error.Error() != "record not found" {
-		fmt.Printf("删除workflow失败,%v\n", tx.Error.Error())
+		zap.L().Error(fmt.Sprintf("删除workflow失败, %v", tx.Error.Error()))
 		return errors.New("删除workflow失败," + tx.Error.Error())
 	}
 	return nil

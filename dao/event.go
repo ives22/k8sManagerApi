@@ -3,6 +3,7 @@ package dao
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"k8sManagerApi/db/mysql"
 	"k8sManagerApi/model"
@@ -37,7 +38,7 @@ func (e *event) GetEvents(name, cluster string, page, limit int) (events *Events
 		Order("id desc").
 		Find(&eventList)
 	if tx.Error != nil {
-		fmt.Printf("获取Event列表失败,%v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("获取Event列表失败, %v", tx.Error))
 		return nil, errors.New(fmt.Sprintf("获取Event列表失败, %v", tx.Error))
 	}
 	events = &Events{
@@ -51,7 +52,7 @@ func (e *event) GetEvents(name, cluster string, page, limit int) (events *Events
 func (e *event) Add(event *model.Event) (err error) {
 	tx := mysql.DB.Create(&event)
 	if tx.Error != nil {
-		fmt.Printf("新增Event失败,%v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("新增Event失败, %v", tx.Error))
 		return errors.New(fmt.Sprintf("新增Event失败, %v", tx.Error))
 	}
 	return nil
@@ -65,7 +66,7 @@ func (e *event) HasEvent(name, kind, namespace, reason string, eventTime time.Ti
 		return nil, false, nil
 	}
 	if tx.Error != nil {
-		fmt.Printf("查询Event失败,%v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("查询Event失败, %v", tx.Error))
 		return nil, false, errors.New(fmt.Sprintf("查询Event失败, %v", tx.Error))
 	}
 	return data, true, nil

@@ -3,6 +3,7 @@ package dao
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"k8sManagerApi/db/mysql"
 	"k8sManagerApi/model"
@@ -36,7 +37,7 @@ func (c *chart) GetList(name string, page, limit int) (charts *Charts, err error
 		Order("id desc").
 		Find(&chartList)
 	if tx.Error != nil {
-		fmt.Printf("获取Chart列表失败, %v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("获取Chart列表失败, %v", tx.Error))
 		return nil, errors.New(fmt.Sprintf("获取Chart列表失败, %v", tx.Error))
 	}
 	charts = &Charts{
@@ -55,7 +56,7 @@ func (c *chart) HasChart(name string) (*model.Chart, bool, error) {
 		return nil, false, nil
 	}
 	if tx.Error != nil {
-		fmt.Printf("查询Chart失败, %v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("查询Chart失败, %v", tx.Error))
 		return nil, false, errors.New(fmt.Sprintf("查询Chart失败, %v", tx.Error))
 	}
 	return data, true, nil
@@ -65,7 +66,7 @@ func (c *chart) HasChart(name string) (*model.Chart, bool, error) {
 func (c *chart) Add(chart *model.Chart) (err error) {
 	tx := mysql.DB.Create(&chart)
 	if tx.Error != nil {
-		fmt.Printf("新增Chart失败,%v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("新增Chart失败, %v", tx.Error))
 		return errors.New(fmt.Sprintf("新增Chart失败, %v", tx.Error))
 	}
 	return nil
@@ -81,7 +82,7 @@ func (c *chart) Update(chart *model.Chart) (err error) {
 		Describe: chart.Describe,
 	})
 	if tx.Error != nil {
-		fmt.Printf("更新Chart失败,%v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("更新Chart失败, %v", tx.Error))
 		return errors.New(fmt.Sprintf("更新Chart失败, %v", tx.Error))
 	}
 	return nil
@@ -93,7 +94,7 @@ func (c *chart) Delete(id uint) (err error) {
 	data.ID = uint(id)
 	tx := mysql.DB.Delete(&data)
 	if tx.Error != nil {
-		fmt.Printf("删除Chart失败,%v\n", tx.Error)
+		zap.L().Error(fmt.Sprintf("删除Chart失败, %v", tx.Error))
 		return errors.New(fmt.Sprintf("删除Chart失败, %v", tx.Error))
 	}
 	return nil
