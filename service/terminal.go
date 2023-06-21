@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
@@ -21,7 +22,7 @@ type terminal struct{}
 func (t *terminal) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 解析form参数，获取namespace、podName、containerName、cluster参数
 	if err := r.ParseForm(); err != nil {
-		fmt.Printf("解析form参数失败, %s\n", err.Error())
+		zap.L().Error(fmt.Sprintf("解析form参数失败, %v", err.Error()))
 		return
 	}
 	namespace := r.Form.Get("namespace")
@@ -30,25 +31,25 @@ func (t *terminal) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	cluster := r.Form.Get("cluster")
 	fmt.Printf("exec pod: %s, container: %s, namespace: %s, cluster: %s\n", podName, containerName, namespace, cluster)
 	if namespace == "" || podName == "" || containerName == "" || cluster == "" {
-		fmt.Printf("namespace、pod_name、container_name、cluster参数为空\n")
+		zap.L().Error("namespace、pod_name、container_name、cluster参数为空")
 		return
 	}
 	client, err := K8s.GetClient(cluster)
 	// 加载k8s配置
 	conf, err := clientcmd.BuildConfigFromFlags("", K8s.GetClusterConf(cluster))
 	if err != nil {
-		fmt.Printf("加载k8s配置失败, %s\n", err.Error())
+		zap.L().Error(fmt.Sprintf("加载k8s配置失败, %v", err.Error()))
 		return
 	}
 	//new一个TerminalSession类型的pty实例
 	pty, err := NewTerminalSession(w, r, nil)
 	if err != nil {
-		fmt.Printf("实例化TerminalSession失败, %s\n", err.Error())
+		zap.L().Error(fmt.Sprintf("实例化TerminalSession失败, %v", err.Error()))
 		return
 	}
 	// 处理关闭，
 	defer func() {
-		fmt.Println("close session.")
+		zap.L().Info("close session.")
 		pty.Close()
 	}()
 
@@ -77,7 +78,7 @@ func (t *terminal) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	// remotecommand 主要实现了http 转 SPDY 添加X-Stream-Protocol-Version相关header 并发送请求
 	executor, err := remotecommand.NewSPDYExecutor(conf, "POST", req.URL())
 	if err != nil {
-		fmt.Printf("建立SPDY连接失败: %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("建立SPDY连接失败, %v", err.Error()))
 		return
 	}
 
@@ -159,14 +160,14 @@ func (t *TerminalSession) Read(p []byte) (int, error) {
 	_, message, err := t.wsConn.ReadMessage()
 
 	if err != nil {
-		fmt.Printf("read message err: %v\n", err)
+		zap.L().Error(fmt.Sprintf("read message err: %v", err.Error()))
 		return 0, err
 	}
 
 	// 反序列化
 	var msg TerminalMessage
 	if err := json.Unmarshal(message, &msg); err != nil {
-		fmt.Printf("read parse message err: %v\n", err)
+		zap.L().Error(fmt.Sprintf("read parse message err: %v", err.Error()))
 		return 0, err
 	}
 
@@ -180,7 +181,7 @@ func (t *TerminalSession) Read(p []byte) (int, error) {
 	case "ping":
 		return 0, nil
 	default:
-		fmt.Printf("unknown message type '%s'\n", msg.Operation)
+		zap.L().Error(fmt.Sprintf("unknown message type '%s'", err.Error()))
 		return 0, fmt.Errorf("unknown message type '%s'\n", msg.Operation)
 	}
 }
@@ -192,11 +193,11 @@ func (t *TerminalSession) Write(p []byte) (int, error) {
 		Data:      string(p),
 	})
 	if err != nil {
-		fmt.Printf("write parse message err: '%v'\n", err)
+		zap.L().Error(fmt.Sprintf("write parse message err: '%v'", err.Error()))
 		return 0, err
 	}
 	if err := t.wsConn.WriteMessage(websocket.TextMessage, msg); err != nil {
-		fmt.Printf("write message err: '%v'\n", err)
+		zap.L().Error(fmt.Sprintf("write message err: '%v'", err.Error()))
 		return 0, err
 	}
 	return len(p), nil

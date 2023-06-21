@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -24,7 +25,7 @@ func (n *node) GetNodes(client *kubernetes.Clientset, filterName string, limit, 
 	// 获取NodeList类型的Node列表
 	nodeList, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取node列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取node列表失败, %v", err.Error()))
 		return nil, errors.New("获取node列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -57,7 +58,7 @@ func (n *node) GetNodes(client *kubernetes.Clientset, filterName string, limit, 
 func (n *node) GetNodeDetail(client *kubernetes.Clientset, nodeName string) (node *corev1.Node, err error) {
 	node, err = client.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Node详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Node详情失败, %v", err.Error()))
 		return nil, errors.New("获取Node详情失败, " + err.Error())
 	}
 

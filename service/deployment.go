@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -52,7 +53,7 @@ func (d *deployment) GetDeployments(client *kubernetes.Clientset, filterName, na
 	// 获取DeploymentList类型的deployment列表
 	deploymentList, err := client.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Deployment列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Deployment列表失败, %v", err.Error()))
 		return nil, errors.New("获取Deployment列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -86,7 +87,7 @@ func (d *deployment) GetDeployments(client *kubernetes.Clientset, filterName, na
 func (d *deployment) GetDeploymentDetail(client *kubernetes.Clientset, deploymentName, namespace string) (deployment *appsv1.Deployment, err error) {
 	deployment, err = client.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Deployment详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Deployment详情失败, %v", err.Error()))
 		return nil, errors.New("获取Deployment详情失败, " + err.Error())
 	}
 	return deployment, nil
@@ -97,14 +98,14 @@ func (d *deployment) SetDeploymentReplicas(client *kubernetes.Clientset, deploym
 	//获取autoscalingv1.Scale类型的对象，能点出当前的副本数
 	scale, err := client.AppsV1().Deployments(namespace).GetScale(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Deployment副本数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Deployment副本数失败, %v", err.Error()))
 		return 0, errors.New("获取Deployment副本数失败," + err.Error())
 	}
 	// 修改副本数
 	scale.Spec.Replicas = replicas
 	_, err = client.AppsV1().Deployments(namespace).UpdateScale(context.TODO(), deploymentName, scale, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新Deployment副本数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新Deployment副本数失败, %v", err.Error()))
 		return 0, errors.New("更新Deployment副本数失败," + err.Error())
 	}
 	return scale.Spec.Replicas, nil
@@ -204,7 +205,7 @@ func (d *deployment) CreateDeployment(client *kubernetes.Clientset, data *Deploy
 	// 调用sdk创建deployment
 	_, err = client.AppsV1().Deployments(data.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Printf("创建Deployment失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("创建Deployment失败, %v", err.Error()))
 		return errors.New("创建Deployment失败," + err.Error())
 	}
 	return nil
@@ -214,7 +215,7 @@ func (d *deployment) CreateDeployment(client *kubernetes.Clientset, data *Deploy
 func (d *deployment) DeleteDeployment(client *kubernetes.Clientset, deploymentName, namespace string) (err error) {
 	err = client.AppsV1().Deployments(namespace).Delete(context.TODO(), deploymentName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除Deployment失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除Deployment失败, %v", err.Error()))
 		return errors.New("删除Deployment失败," + err.Error())
 	}
 	return nil
@@ -228,7 +229,7 @@ func (d *deployment) RestartDeployment(client *kubernetes.Clientset, deploymentN
 	// 首先获取该deployment中每个Pod有多少容器，拿到名字
 	deploymentInfo, err := client.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Deployment失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Deployment失败, %v", err.Error()))
 		return errors.New("获取Deployment失败," + err.Error())
 	}
 	// 遍历deploymentInfo获取所有容器名，放入到containerList
@@ -259,13 +260,13 @@ func (d *deployment) RestartDeployment(client *kubernetes.Clientset, deploymentN
 	patchByte, err := json.Marshal(patchData)
 	fmt.Println(string(patchByte))
 	if err != nil {
-		fmt.Printf("Json序列化失败, %v\n", err)
+		zap.L().Error(fmt.Sprintf("Json序列化失败, %v", err.Error()))
 		return errors.New("Json序列化失败," + err.Error())
 	}
 	// 调用patch方法更新deployment
 	_, err = client.AppsV1().Deployments(namespace).Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, patchByte, metav1.PatchOptions{})
 	if err != nil {
-		fmt.Printf("重启Deployment失败, %v\n", err)
+		zap.L().Error(fmt.Sprintf("重启Deployment失败, %v", err.Error()))
 		return errors.New("重启Deployment失败," + err.Error())
 	}
 	return nil
@@ -276,12 +277,12 @@ func (d *deployment) UpdateDeployment(client *kubernetes.Clientset, namespace, c
 	var deploy = &appsv1.Deployment{}
 	err = json.Unmarshal([]byte(content), deploy)
 	if err != nil {
-		fmt.Printf("反序列化失败 %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败," + err.Error())
 	}
 	_, err = client.AppsV1().Deployments(namespace).Update(context.TODO(), deploy, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新Deployment失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新Deployment失败, %v", err.Error()))
 		return errors.New("更新Deployment失败," + err.Error())
 	}
 	return nil
@@ -292,14 +293,14 @@ func (d *deployment) GetDeployNumPerNp(client *kubernetes.Clientset) (deploysNps
 	// 获取Namespace列表
 	namespaceList, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Namespace列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Namespace列表失败, %v", err.Error()))
 		return nil, errors.New("获取Namespace列表失败, " + err.Error())
 	}
 	for _, namespace := range namespaceList.Items {
 		// 获取Deployment列表
 		deployList, err := client.AppsV1().Deployments(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			fmt.Printf("获取Deployment列表失败, %v\n", err.Error())
+			zap.L().Error(fmt.Sprintf("获取Deployment列表失败, %v", err.Error()))
 			return nil, errors.New("获取Deployment列表失败, " + err.Error())
 		}
 		// 组装数据

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -31,7 +32,7 @@ func (s *statefulSet) GetStatefulSets(client *kubernetes.Clientset, filterName, 
 	// 获取StatefulSetList类型的Statefulset列表
 	statefulSetList, err := client.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取StatefulSet列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取StatefulSet列表失败, %v", err.Error()))
 		return nil, errors.New("获取StatefulSet列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -64,7 +65,7 @@ func (s *statefulSet) GetStatefulSets(client *kubernetes.Clientset, filterName, 
 func (s *statefulSet) GetStatefulSetDetail(client *kubernetes.Clientset, statefulSetName, namespace string) (statefulset *appsv1.StatefulSet, err error) {
 	statefulset, err = client.AppsV1().StatefulSets(namespace).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取StatefulSet详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取StatefulSet详情失败, %v", err.Error()))
 		return nil, errors.New("获取StatefulSet详情失败, " + err.Error())
 	}
 	return statefulset, nil
@@ -74,7 +75,7 @@ func (s *statefulSet) GetStatefulSetDetail(client *kubernetes.Clientset, statefu
 func (s *statefulSet) DeleteStatefulSet(client *kubernetes.Clientset, statefulSetName, namespace string) (err error) {
 	err = client.AppsV1().StatefulSets(namespace).Delete(context.TODO(), statefulSetName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除StatefulSet失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除StatefulSet失败, %v", err.Error()))
 		return errors.New("删除StatefulSet失败, " + err.Error())
 	}
 	return nil
@@ -85,12 +86,12 @@ func (s *statefulSet) UpdateStatefulSet(client *kubernetes.Clientset, namespace,
 	var stateful = &appsv1.StatefulSet{}
 	err = json.Unmarshal([]byte(content), stateful)
 	if err != nil {
-		fmt.Printf("反序列化失败 %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败," + err.Error())
 	}
 	_, err = client.AppsV1().StatefulSets(namespace).Update(context.TODO(), stateful, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新StatefulSet失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新StatefulSet失败, %v", err.Error()))
 		return errors.New("更新StatefulSet失败, " + err.Error())
 	}
 	return nil
@@ -101,14 +102,14 @@ func (s *statefulSet) GetStatefulSetNumPerNp(client *kubernetes.Clientset) (Stat
 	// 获取Namespace列表
 	namespaceList, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Namespace列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Namespace列表失败, %v", err.Error()))
 		return nil, errors.New("获取Namespace列表失败, " + err.Error())
 	}
 	for _, namespace := range namespaceList.Items {
 		// 获取Deployment列表
 		statefulSetList, err := client.AppsV1().StatefulSets(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			fmt.Printf("获取StatefulSet列表失败, %v\n", err.Error())
+			zap.L().Error(fmt.Sprintf("获取StatefulSet列表失败, %v", err.Error()))
 			return nil, errors.New("获取StatefulSet列表失败, " + err.Error())
 		}
 		// 组装数据

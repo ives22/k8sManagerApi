@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/release"
@@ -54,7 +55,7 @@ func (h *helmStore) ListRelease(actionConfig *action.Configuration, filterName s
 	client.Deployed = true
 	results, err := client.Run()
 	if err != nil {
-		fmt.Printf("获取Release失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Release失败, %v", err.Error()))
 		return nil, errors.New("获取Release失败," + err.Error())
 	}
 	total := len(results)
@@ -74,7 +75,7 @@ func (h *helmStore) DetailRelease(actionConfig *action.Configuration, release st
 	client := action.NewGet(actionConfig)
 	data, err := client.Run(release)
 	if err != nil {
-		fmt.Printf("获取Release详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Release详情失败, %v", err.Error()))
 		return nil, errors.New("获取Release详情失败," + err.Error())
 	}
 	return data, nil
@@ -97,13 +98,13 @@ func (h *helmStore) InstallRelease(actionConfig *action.Configuration, release, 
 	// 加载chart文件，并基于文件内容生成k8的资源
 	chartRequested, err := loader.Load(chart)
 	if err != nil {
-		fmt.Printf("加载Chart文件, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("加载Chart文件, %v", err.Error()))
 		return errors.New("加载Chart文件," + err.Error())
 	}
 	vals := make(map[string]interface{}, 0)
 	_, err = client.Run(chartRequested, vals)
 	if err != nil {
-		fmt.Printf("安装Release文件, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("安装Release文件, %v", err.Error()))
 		return errors.New("安装Release文件," + err.Error())
 	}
 	return nil
@@ -114,7 +115,7 @@ func (h *helmStore) UninstallRelease(actionConfig *action.Configuration, release
 	client := action.NewUninstall(actionConfig)
 	_, err := client.Run(release)
 	if err != nil {
-		fmt.Printf("卸载Release失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("卸载Release失败, %v", err.Error()))
 		return errors.New("卸载Release失败," + err.Error())
 	}
 	return nil
@@ -125,7 +126,7 @@ func (h *helmStore) UploadChartFile(file multipart.File, header *multipart.FileH
 	filename := header.Filename
 	t := strings.Split(filename, ".")
 	if t[len(t)-1] != "tgz" {
-		fmt.Println("Chart文件必须以.tgz结尾")
+		zap.L().Warn("Chart文件必须以.tgz结尾")
 		return errors.New(fmt.Sprintf("Chart文件必须以.tgz结尾"))
 	}
 
@@ -133,18 +134,18 @@ func (h *helmStore) UploadChartFile(file multipart.File, header *multipart.FileH
 	filePath := config.Conf.UploadPath + filename
 	_, err := os.Stat(filePath)
 	if os.IsExist(err) {
-		fmt.Println("Chart文件已存在")
+		zap.L().Warn("Chart文件已存在")
 		return errors.New(fmt.Sprintf("Chart文件已存在"))
 	}
 	out, err := os.Create(filePath)
 	if err != nil {
-		fmt.Printf("创建Chart文件失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("创建Chart文件失败, %v", err.Error()))
 		return errors.New(fmt.Sprintf("创建Chart文件失败, %v", err.Error()))
 	}
 	defer out.Close()
 	_, err = io.Copy(out, file)
 	if err != nil {
-		fmt.Printf("创建Chart文件失败2, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("创建Chart文件失败2, %v", err.Error()))
 		return errors.New(fmt.Sprintf("创建Chart文件失败2, %v", err.Error()))
 	}
 	return nil
@@ -156,12 +157,12 @@ func (h *helmStore) DeleteChartFile(chart string) error {
 	filePath := config.Conf.UploadPath + chart
 	_, err := os.Stat(filePath)
 	if err != nil || os.IsNotExist(err) {
-		fmt.Println("Chart文件不存在")
+		zap.L().Warn("Chart文件不存在")
 		return errors.New(fmt.Sprintf("Chart文件不存在"))
 	}
 	err = os.Remove(filePath)
 	if err != nil {
-		fmt.Printf("删除Chart文件失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除Chart文件失败, %v", err.Error()))
 		return errors.New(fmt.Sprintf("删除Chart文件失败, %v", err.Error()))
 	}
 	return nil

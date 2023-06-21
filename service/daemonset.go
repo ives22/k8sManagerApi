@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -48,7 +49,7 @@ func (d *daemonSet) GetDaemonSets(client *kubernetes.Clientset, filterName, name
 	// 获取DaemonSetList类型的Daemonset列表
 	daemonSetList, err := client.AppsV1().DaemonSets(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取DaemonSet列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取DaemonSet列表失败, %v", err.Error()))
 		return nil, errors.New("获取DaemonSet列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -81,7 +82,7 @@ func (d *daemonSet) GetDaemonSets(client *kubernetes.Clientset, filterName, name
 func (d *daemonSet) GetDaemonSetDetail(client *kubernetes.Clientset, daemonSetName, namespace string) (daemonset *appsv1.DaemonSet, err error) {
 	daemonset, err = client.AppsV1().DaemonSets(namespace).Get(context.TODO(), daemonSetName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取DaemonSet详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取DaemonSet详情失败, %v", err.Error()))
 		return nil, errors.New("获取DaemonSet详情失败, " + err.Error())
 	}
 	return daemonset, nil
@@ -91,7 +92,7 @@ func (d *daemonSet) GetDaemonSetDetail(client *kubernetes.Clientset, daemonSetNa
 func (d *daemonSet) DeleteDaemonSet(client *kubernetes.Clientset, daemonSetName, namespace string) (err error) {
 	err = client.AppsV1().DaemonSets(namespace).Delete(context.TODO(), daemonSetName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除DaemonSet失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除DaemonSet失败, %v", err.Error()))
 		return errors.New("删除DaemonSet失败, " + err.Error())
 	}
 	return nil
@@ -102,12 +103,12 @@ func (d *daemonSet) UpdateDaemonSet(client *kubernetes.Clientset, namespace, con
 	var daemon = &appsv1.DaemonSet{}
 	err = json.Unmarshal([]byte(content), daemon)
 	if err != nil {
-		fmt.Printf("反序列化失败 %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败," + err.Error())
 	}
 	_, err = client.AppsV1().DaemonSets(namespace).Update(context.TODO(), daemon, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新DaemonSet失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新DaemonSet失败, %v", err.Error()))
 		return errors.New("更新DaemonSet失败, " + err.Error())
 	}
 	return nil
@@ -198,7 +199,7 @@ func (d *daemonSet) CreateDaemonSet(client *kubernetes.Clientset, data *DaemonSe
 
 	// 调用sdk创建deployment
 	if _, err = client.AppsV1().DaemonSets(data.Namespace).Create(context.TODO(), daemonset, metav1.CreateOptions{}); err != nil {
-		fmt.Printf("创建DaemonSet失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("创建DaemonSet失败, %v", err.Error()))
 		return errors.New("创建DaemonSet失败," + err.Error())
 	}
 
@@ -210,14 +211,14 @@ func (d *daemonSet) GetDaemonSetNumPerNp(client *kubernetes.Clientset) (DaemonSe
 	// 获取Namespace列表
 	namespaceList, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Namespace列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Namespace列表失败, %v", err.Error()))
 		return nil, errors.New("获取Namespace列表失败, " + err.Error())
 	}
 	for _, namespace := range namespaceList.Items {
 		// 获取Deployment列表
 		daemonSetList, err := client.AppsV1().DaemonSets(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			fmt.Printf("获取Deployment列表失败, %v\n", err.Error())
+			zap.L().Error(fmt.Sprintf("获取DaemonSet列表失败, %v", err.Error()))
 			return nil, errors.New("获取DaemonSet列表失败, " + err.Error())
 		}
 		// 组装数据

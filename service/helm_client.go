@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"helm.sh/helm/v3/pkg/action"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"log"
@@ -20,7 +21,7 @@ type helmConfig struct {
 func (c *helmConfig) GetAc(cluster, namespace string) (*action.Configuration, error) {
 	kubeconfig := K8s.GetClusterConf(cluster)
 	if kubeconfig != "" {
-		fmt.Printf("集群不存在: %s，无法获取client\n", cluster)
+		zap.L().Warn(fmt.Sprintf("集群不存在: %s, 无法获取client", cluster))
 		return nil, errors.New(fmt.Sprintf("集群不存在: %s, 无法获取client", cluster))
 	}
 
@@ -31,7 +32,7 @@ func (c *helmConfig) GetAc(cluster, namespace string) (*action.Configuration, er
 		Namespace:  &namespace,
 	}
 	if err := actionConfig.Init(cf, namespace, os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
-		fmt.Printf("actionConfig初始化失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("actionConfig初始化失败, %v", err.Error()))
 		return nil, errors.New("actionConfig初始化失败, " + err.Error())
 	}
 	return actionConfig, nil

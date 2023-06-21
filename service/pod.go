@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +39,7 @@ func (p *pod) GetPods(client *kubernetes.Clientset, filterName, namespace string
 	// kubectl get services --all-namespaces --field-seletor metadata.namespace != default
 	podList, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Pod列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Pod列表失败, %v", err.Error()))
 		return nil, errors.New("获取Pod列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -87,7 +88,7 @@ func (p *pod) GetPods(client *kubernetes.Clientset, filterName, namespace string
 func (p *pod) GetPodDetail(client *kubernetes.Clientset, podName, namespace string) (pod *corev1.Pod, err error) {
 	pod, err = client.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Pod详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Pod详情失败, %v", err.Error()))
 		return nil, errors.New("获取Pod详情失败, " + err.Error())
 	}
 	return pod, nil
@@ -97,7 +98,7 @@ func (p *pod) GetPodDetail(client *kubernetes.Clientset, podName, namespace stri
 func (p *pod) DeletePod(client *kubernetes.Clientset, podName, namespace string) (err error) {
 	err = client.CoreV1().Pods(namespace).Delete(context.TODO(), podName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除Pod详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除Pod详情失败, %v", err.Error()))
 		return errors.New("删除Pod详情失败, " + err.Error())
 	}
 	return nil
@@ -108,12 +109,12 @@ func (p *pod) UpdatePod(client *kubernetes.Clientset, namespace, content string)
 	pod := &corev1.Pod{}
 	err = json.Unmarshal([]byte(content), pod)
 	if err != nil {
-		fmt.Printf("反序列化失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败, " + err.Error())
 	}
 	_, err = client.CoreV1().Pods(namespace).Update(context.TODO(), pod, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新Pod失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新Pod失败, %v", err.Error()))
 		return errors.New("更新Pod失败, " + err.Error())
 	}
 	return nil
@@ -123,7 +124,7 @@ func (p *pod) UpdatePod(client *kubernetes.Clientset, namespace, content string)
 func (p *pod) GetPodContainer(client *kubernetes.Clientset, podName, namespace string) (containers []string, err error) {
 	pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Pod详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Pod详情失败, %v", err.Error()))
 		return nil, errors.New("获取Pod详情失败, " + err.Error())
 	}
 	for _, container := range pod.Spec.Containers {
@@ -145,7 +146,7 @@ func (p *pod) GetPodLog(client *kubernetes.Clientset, containerName, podName, na
 	// 调用GetLogs方法 发起Stream连接，得到Response body
 	logs, err := req.Stream(context.TODO())
 	if err != nil {
-		fmt.Printf("获取Pod日志失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Pod日志失败, %v", err.Error()))
 		return "", errors.New("获取Pod日志失败, " + err.Error())
 	}
 	defer logs.Close()
@@ -153,8 +154,8 @@ func (p *pod) GetPodLog(client *kubernetes.Clientset, containerName, podName, na
 	buf := new(bytes.Buffer)
 	_, err = io.Copy(buf, logs)
 	if err != nil {
-		fmt.Printf("复制Pod日志失败, %v\n", err.Error())
-		return "", errors.New("复制Pod日志失败, " + err.Error())
+		zap.L().Error(fmt.Sprintf("获取Pod日志失败, %v", err.Error()))
+		return "", errors.New("获取Pod日志失败, " + err.Error())
 	}
 	return buf.String(), nil
 }
@@ -164,14 +165,14 @@ func (p *pod) GetPodNumPerNp(client *kubernetes.Clientset) (podsNps []*PodsNp, e
 	// 获取Namespace列表
 	namespaceList, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Namespace列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Namespace列表失败, %v", err.Error()))
 		return nil, errors.New("获取Namespace列表失败, " + err.Error())
 	}
 	for _, namespace := range namespaceList.Items {
 		// 获取pod列表
 		podList, err := client.CoreV1().Pods(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			fmt.Printf("获取Pod列表失败, %v\n", err.Error())
+			zap.L().Error(fmt.Sprintf("获取Pod列表失败, %v", err.Error()))
 			return nil, errors.New("获取Pod列表失败, " + err.Error())
 		}
 		// 组装数据

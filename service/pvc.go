@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -24,7 +25,7 @@ func (p *pvc) GetPvcs(client *kubernetes.Clientset, namespace, filterName string
 	// 获取PVC list
 	pvcList, err := client.CoreV1().PersistentVolumeClaims(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取PVC列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取PVC列表失败, %v", err.Error()))
 		return nil, errors.New("获取PVC列表失败" + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -54,7 +55,7 @@ func (p *pvc) GetPvcDetail(client *kubernetes.Clientset, namespace, pvcName stri
 	// 获取PVC详情
 	Pvc, err = client.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), pvcName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取PVC详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取PVC详情失败, %v", err.Error()))
 		return nil, errors.New("获取PVC详情失败" + err.Error())
 	}
 	return Pvc, err
@@ -65,12 +66,12 @@ func (p *pvc) UpdatePvc(client *kubernetes.Clientset, namespace, content string)
 	var pvc = &corev1.PersistentVolumeClaim{}
 	err = json.Unmarshal([]byte(content), pvc)
 	if err != nil {
-		fmt.Printf("反序列化失败 %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败," + err.Error())
 	}
 	_, err = client.CoreV1().PersistentVolumeClaims(namespace).Update(context.TODO(), pvc, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新PVC失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新PVC失败, %v", err.Error()))
 		return errors.New("更新PVC失败" + err.Error())
 	}
 	return nil
@@ -80,7 +81,7 @@ func (p *pvc) UpdatePvc(client *kubernetes.Clientset, namespace, content string)
 func (p *pvc) DeletePvc(client *kubernetes.Clientset, namespace, pvcName string) (err error) {
 	err = client.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvcName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除PVC失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除PVC失败, %v", err.Error()))
 		return errors.New("删除PVC失败" + err.Error())
 	}
 	return nil

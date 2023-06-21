@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -30,7 +31,7 @@ func (n *namespace) GetNamespaces(client *kubernetes.Clientset, filterName strin
 	// 获取NodeList类型的Node列表
 	namespaceList, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取namespace列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取namespace列表失败, %v", err.Error()))
 		return nil, errors.New("获取namespace列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -63,7 +64,7 @@ func (n *namespace) GetNamespaces(client *kubernetes.Clientset, filterName strin
 func (n *namespace) GetNamespaceDetail(client *kubernetes.Clientset, namespaceName string) (namespace *corev1.Namespace, err error) {
 	namespace, err = client.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Namespace详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Namespace详情失败, %v", err.Error()))
 		return nil, errors.New("获取Namespace详情失败, " + err.Error())
 	}
 	return namespace, nil
@@ -83,7 +84,7 @@ func (n *namespace) CreateNamespace(client *kubernetes.Clientset, data *Namespac
 	// 2、调用SDK创建namespace
 	_, err = client.CoreV1().Namespaces().Create(context.TODO(), namespace, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Printf("创建namespace失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("创建namespace失败, %v", err.Error()))
 		return errors.New("创建namespace失败," + err.Error())
 	}
 	return nil
@@ -93,7 +94,7 @@ func (n *namespace) CreateNamespace(client *kubernetes.Clientset, data *Namespac
 func (n *namespace) DeleteNamespace(client *kubernetes.Clientset, namespaceName string) (err error) {
 	err = client.CoreV1().Namespaces().Delete(context.TODO(), namespaceName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除Namespace失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除Namespace失败, %v", err.Error()))
 		return errors.New("删除Namespace失败, " + err.Error())
 	}
 	return nil

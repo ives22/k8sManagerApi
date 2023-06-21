@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -24,7 +25,7 @@ func (s *secret) GetSecrets(client *kubernetes.Clientset, namespaces, filterName
 	// 获取Secret
 	SecretList, err := client.CoreV1().Secrets(namespaces).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取Secret列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Secret列表失败, %v", err.Error()))
 		return nil, errors.New("获取Secret列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -53,7 +54,7 @@ func (s *secret) GetSecrets(client *kubernetes.Clientset, namespaces, filterName
 func (s *secret) GetSecretDetail(client *kubernetes.Clientset, namespace, SecretName string) (Secret *corev1.Secret, err error) {
 	Secret, err = client.CoreV1().Secrets(namespace).Get(context.TODO(), SecretName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取Secret详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取Secret详情失败, %v", err.Error()))
 		return nil, errors.New("获取Secret详情失败, " + err.Error())
 	}
 	return Secret, nil
@@ -64,12 +65,12 @@ func (s *secret) UpdateSecret(client *kubernetes.Clientset, namespace, content s
 	var Secret = &corev1.Secret{}
 	err = json.Unmarshal([]byte(content), Secret)
 	if err != nil {
-		fmt.Printf("反序列化失败 %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败," + err.Error())
 	}
 	_, err = client.CoreV1().Secrets(namespace).Update(context.TODO(), Secret, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新Secret失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新Secret失败, %v", err.Error()))
 		return errors.New("更新Secret失败, " + err.Error())
 	}
 	return nil
@@ -79,7 +80,7 @@ func (s *secret) UpdateSecret(client *kubernetes.Clientset, namespace, content s
 func (s *secret) DeleteSecret(client *kubernetes.Clientset, namespace, SecretName string) (err error) {
 	err = client.CoreV1().Secrets(namespace).Delete(context.TODO(), SecretName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除Secret失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除Secret失败, %v", err.Error()))
 		return errors.New("删除Secret失败, " + err.Error())
 	}
 	return nil

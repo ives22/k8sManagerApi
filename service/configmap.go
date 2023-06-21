@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -24,7 +25,7 @@ func (c *configMap) GetConfigMaps(client *kubernetes.Clientset, namespaces, filt
 	// 获取configmap
 	configMapList, err := client.CoreV1().ConfigMaps(namespaces).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Printf("获取configMap列表失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取configMap列表失败, %v", err.Error()))
 		return nil, errors.New("获取configMap列表失败," + err.Error())
 	}
 	// 实例化dataSelector结构体，组装数据
@@ -53,7 +54,7 @@ func (c *configMap) GetConfigMaps(client *kubernetes.Clientset, namespaces, filt
 func (c *configMap) GetConfigMapDetail(client *kubernetes.Clientset, namespace, configmapName string) (configMap *corev1.ConfigMap, err error) {
 	configMap, err = client.CoreV1().ConfigMaps(namespace).Get(context.TODO(), configmapName, metav1.GetOptions{})
 	if err != nil {
-		fmt.Printf("获取ConfigMap详情失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取ConfigMap详情失败, %v", err.Error()))
 		return nil, errors.New("获取ConfigMap详情失败, " + err.Error())
 	}
 	return configMap, nil
@@ -64,12 +65,12 @@ func (c *configMap) UpdateConfigMap(client *kubernetes.Clientset, namespace, con
 	var configMap = &corev1.ConfigMap{}
 	err = json.Unmarshal([]byte(content), configMap)
 	if err != nil {
-		fmt.Printf("反序列化失败 %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("反序列化失败, %v", err.Error()))
 		return errors.New("反序列化失败," + err.Error())
 	}
 	_, err = client.CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Printf("更新ConfigMap失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("更新ConfigMap失败, %v", err.Error()))
 		return errors.New("更新ConfigMap失败, " + err.Error())
 	}
 	return nil
@@ -79,7 +80,7 @@ func (c *configMap) UpdateConfigMap(client *kubernetes.Clientset, namespace, con
 func (c *configMap) DeleteConfigMap(client *kubernetes.Clientset, namespace, configmapName string) (err error) {
 	err = client.CoreV1().ConfigMaps(namespace).Delete(context.TODO(), configmapName, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("删除ConfigMap失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除ConfigMap失败, %v", err.Error()))
 		return errors.New("删除ConfigMap失败, " + err.Error())
 	}
 	return nil
