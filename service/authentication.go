@@ -3,12 +3,33 @@ package service
 import (
 	"errors"
 	"k8sManagerApi/dao"
+	"k8sManagerApi/model"
 	"k8sManagerApi/utils"
 )
 
 var Auth auth
 
 type auth struct{}
+
+type UserCreate struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// Register 创建用户
+func (a *auth) Register(user *UserCreate) (err error) {
+	// 对密码进行加密处理
+	md5Password := utils.ToMd5(user.Password)
+	newUser := &model.User{
+		Username: user.Username,
+		Password: md5Password,
+	}
+	dao.User.AddUser(newUser)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // Login 登录 验证用户密码是否正确，并返回token
 func (a *auth) Login(username, password string) (token string, err error) {
@@ -27,4 +48,13 @@ func (a *auth) Login(username, password string) (token string, err error) {
 		return "", err
 	}
 	return token, nil
+}
+
+// GetUser 查询用户
+func (a *auth) GetUser(username string) (data *model.User, err error) {
+	data, err = dao.User.GetUserByName(username)
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }

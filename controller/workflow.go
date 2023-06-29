@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/service"
 	"net/http"
 )
@@ -21,7 +22,7 @@ func (w *workflow) GetWorkflowsHandler(ctx *gin.Context) {
 		Cluster   string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -52,7 +53,7 @@ func (w *workflow) GetWorkflowDetailHandler(ctx *gin.Context) {
 		ID int `form:"id"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -84,7 +85,7 @@ func (w *workflow) CreateWorkflowHandler(ctx *gin.Context) {
 		err error
 	)
 	if err := ctx.ShouldBindJSON(wc); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -104,7 +105,7 @@ func (w *workflow) CreateWorkflowHandler(ctx *gin.Context) {
 		return
 	}
 	if err = service.Workflow.CreateWorkflow(client, wc); err != nil {
-		fmt.Printf("创建Workflow失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("创建Workflow失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),
@@ -126,7 +127,7 @@ func (w *workflow) DeleteWorkflowHandler(ctx *gin.Context) {
 		Cluster string `json:"cluster"`
 	})
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("Bind绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -144,7 +145,7 @@ func (w *workflow) DeleteWorkflowHandler(ctx *gin.Context) {
 		return
 	}
 	if err := service.Workflow.DeleteWorkflow(client, params.ID); err != nil {
-		fmt.Printf("删除Workflow失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("删除Workflow失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),

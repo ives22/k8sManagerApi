@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/model"
 	"k8sManagerApi/service"
 	"net/http"
@@ -20,7 +21,7 @@ func (h *helmStore) ListReleasesHandler(ctx *gin.Context) {
 		Cluster    string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -61,7 +62,7 @@ func (h *helmStore) DetailReleaseHandler(ctx *gin.Context) {
 		Cluster   string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -104,7 +105,7 @@ func (h *helmStore) InstallReleaseHandler(ctx *gin.Context) {
 	})
 
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -146,7 +147,7 @@ func (h *helmStore) UninstallReleaseHandler(ctx *gin.Context) {
 	})
 
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -183,7 +184,7 @@ func (h *helmStore) UninstallReleaseHandler(ctx *gin.Context) {
 func (h *helmStore) UploadChartFileHandler(ctx *gin.Context) {
 	file, header, err := ctx.Request.FormFile("chart")
 	if err != nil {
-		fmt.Printf("获取上传信息失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("获取上传信息失败, %v", err.Error()))
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "获取上传信息失败" + err.Error(),
@@ -213,7 +214,7 @@ func (h *helmStore) DeleteChartFileHandler(ctx *gin.Context) {
 		Chart string `json:"chart"`
 	})
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -245,7 +246,7 @@ func (h *helmStore) GetChartsHandler(ctx *gin.Context) {
 		Limit int    `form:"limit"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -273,7 +274,7 @@ func (h *helmStore) GetChartsHandler(ctx *gin.Context) {
 func (h *helmStore) AddChartHandler(ctx *gin.Context) {
 	params := new(model.Chart)
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -301,7 +302,7 @@ func (h *helmStore) AddChartHandler(ctx *gin.Context) {
 func (h *helmStore) UpdateChartHandler(ctx *gin.Context) {
 	params := new(model.Chart)
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -329,7 +330,7 @@ func (h *helmStore) UpdateChartHandler(ctx *gin.Context) {
 func (h *helmStore) DeleteChartHandler(ctx *gin.Context) {
 	params := new(model.Chart)
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),

@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/service"
 	"net/http"
 )
@@ -24,7 +25,7 @@ func (s *statefulSet) GetStatefulSetsHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -68,7 +69,7 @@ func (s *statefulSet) GetStatefulSetDetailHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -110,7 +111,7 @@ func (s *statefulSet) DeleteStatefulSetHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -152,7 +153,7 @@ func (s *statefulSet) UpdateStatefulSetHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -191,6 +192,7 @@ func (s *statefulSet) GetStatefulSetNumPerNpHandler(ctx *gin.Context) {
 		Cluster string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),

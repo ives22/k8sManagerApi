@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/service"
 	"net/http"
 )
@@ -28,7 +29,7 @@ func (p *pod) GetPodsHandler(ctx *gin.Context) {
 
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -72,7 +73,7 @@ func (p *pod) GetPodDetailHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -116,7 +117,7 @@ func (p *pod) DeletePodHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -160,7 +161,7 @@ func (p *pod) UpdatePodHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -204,7 +205,7 @@ func (p *pod) GetPodContainerHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -250,7 +251,7 @@ func (p *pod) GetPodLogHandler(ctx *gin.Context) {
 	})
 	// form格式使用Bind方法，json格式使用SholdBindJson方法
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -289,6 +290,7 @@ func (p *pod) GetPodNumberHandler(ctx *gin.Context) {
 		Cluster string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),

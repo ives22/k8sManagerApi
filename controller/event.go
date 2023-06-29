@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/service"
 	"net/http"
 )
@@ -21,7 +22,7 @@ func (e *event) GetEventsHandler(ctx *gin.Context) {
 		Limit   int    `form:"limit"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  errors.New("绑定参数失败, " + err.Error()),
@@ -31,7 +32,7 @@ func (e *event) GetEventsHandler(ctx *gin.Context) {
 	}
 	data, err := service.Event.GetEvents(params.Name, params.Cluster, params.Page, params.Limit)
 	if err != nil {
-		fmt.Printf("%v\n", err.Error())
+		zap.L().Error(err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),

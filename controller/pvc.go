@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"k8sManagerApi/service"
 	"net/http"
 )
@@ -22,7 +23,7 @@ func (p *pvc) GetPvcsHandler(ctx *gin.Context) {
 		Cluster    string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -63,7 +64,7 @@ func (p *pvc) GetPvcDetailHandler(ctx *gin.Context) {
 		Cluster   string `form:"cluster"`
 	})
 	if err := ctx.Bind(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -104,7 +105,7 @@ func (p *pvc) UpdatePvcHandler(ctx *gin.Context) {
 		Cluster   string `json:"cluster"`
 	})
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),
@@ -145,7 +146,7 @@ func (p *pvc) DeletePvcHandler(ctx *gin.Context) {
 		Cluster   string `json:"cluster"`
 	})
 	if err := ctx.ShouldBindJSON(params); err != nil {
-		fmt.Printf("绑定参数失败, %v\n", err.Error())
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  "Bind绑定参数失败" + err.Error(),

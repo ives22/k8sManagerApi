@@ -13,6 +13,8 @@ func JWTAuth() gin.HandlerFunc {
 			c.Next()
 		} else if c.Request.URL.String()[0:10] == "/download/" { // 对下载接口放行
 			c.Next()
+		} else if c.Request.URL.String()[0:13] == "/api/register" {
+			c.Next()
 		} else {
 			// 获取Header中的Authorization
 			token := c.Request.Header.Get("Authorization")

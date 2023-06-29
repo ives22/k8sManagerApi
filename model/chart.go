@@ -25,15 +25,15 @@ func (*Chart) TableName() string {
 /*
 CREATE TABLE `helm_chart` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-	`name` VARCHAR(256) DEFAULT NULL,
-  `file_name` VARCHAR(256) DEFAULT NULL,
-  `icon_url` VARCHAR(256) DEFAULT NULL,
-  `version` VARCHAR(256) DEFAULT NULL,
-  `describe` VARCHAR(256) DEFAULT NULL,
+	`name` VARCHAR(255) DEFAULT NULL,
+  `file_name` VARCHAR(255) DEFAULT NULL,
+  `icon_url` VARCHAR(255) DEFAULT NULL,
+  `version` VARCHAR(255) DEFAULT NULL,
+  `describe` VARCHAR(255) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `deleted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_helm_chart_deleted_at` (`deleted_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=2291 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2291 CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 */

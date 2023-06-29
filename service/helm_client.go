@@ -20,7 +20,8 @@ type helmConfig struct {
 // GetAc 获取Helm action 配置
 func (c *helmConfig) GetAc(cluster, namespace string) (*action.Configuration, error) {
 	kubeconfig := K8s.GetClusterConf(cluster)
-	if kubeconfig != "" {
+	fmt.Println("kube配置文件：", kubeconfig)
+	if kubeconfig == "" {
 		zap.L().Warn(fmt.Sprintf("集群不存在: %s, 无法获取client", cluster))
 		return nil, errors.New(fmt.Sprintf("集群不存在: %s, 无法获取client", cluster))
 	}

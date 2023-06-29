@@ -12,6 +12,7 @@ var Cluster cluster
 
 type cluster struct{}
 
+// GetClustersHandler 获取集群列表
 func (c *cluster) GetClustersHandler(ctx *gin.Context) {
 	list := make([]string, 0)
 	for key := range service.K8s.ClientMap {

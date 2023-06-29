@@ -28,18 +28,18 @@ func (*Event) TableName() string {
 /*
 CREATE TABLE `k8s_event` (
 `id` int(11) NOT NULL AUTO_INCREMENT,
-`name` varchar(32) DEFAULT NULL,
-`kind` varchar(32) DEFAULT NULL,
-`namespace` varchar(32) DEFAULT NULL,
-`rtype` varchar(32) DEFAULT NULL,
-`reason` varchar(32) DEFAULT NULL,
-`message` varchar(256) DEFAULT NULL,
+`name` varchar(255) DEFAULT NULL,
+`kind` varchar(255) DEFAULT NULL,
+`namespace` varchar(255) DEFAULT NULL,
+`rtype` varchar(255) DEFAULT NULL,
+`reason` varchar(255) DEFAULT NULL,
+`message` varchar(255) DEFAULT NULL,
 `event_time` datetime DEFAULT NULL,
-`cluster` varchar(32) DEFAULT NULL,
+`cluster` varchar(64) DEFAULT NULL,
 `created_at` datetime DEFAULT NULL,
 `updated_at` datetime DEFAULT NULL,
 `deleted_at` datetime DEFAULT NULL,
 PRIMARY KEY (`id`),
 KEY `idx_k8s_event_deleted_at` (`deleted_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=2291 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2291 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 */

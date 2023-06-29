@@ -126,6 +126,8 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 
 	// 以下是登录注册相关的路由和处理函数
 	router.POST("/api/login", Auth.LoginHandler)
+	// 注册路由
+	router.POST("/api/register", Auth.RegisterHandler)
 
 	// 获取集群列表
 	router.GET("/api/k8s/clusters", Cluster.GetClustersHandler)
