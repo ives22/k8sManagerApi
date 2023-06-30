@@ -128,6 +128,8 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 	router.POST("/api/login", Auth.LoginHandler)
 	// 注册路由
 	router.POST("/api/register", Auth.RegisterHandler)
+	// 修改密码
+	router.PUT("/api/changepwd", Auth.ChangePwdHandler)
 
 	// 获取集群列表
 	router.GET("/api/k8s/clusters", Cluster.GetClustersHandler)

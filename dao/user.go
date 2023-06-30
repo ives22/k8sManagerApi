@@ -38,3 +38,11 @@ func (u *user) AddUser(user *model.User) (err error) {
 	}
 	return nil
 }
+
+// ChangePassword 修改密码
+func (u *user) ChangePassword(name, password string) (err error) {
+	user := &model.User{}
+	_ = mysql.DB.Where("username = ?", name).First(&user)
+	mysql.DB.Model(user).Select("password").Update("password", password)
+	return nil
+}

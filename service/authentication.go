@@ -2,6 +2,8 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"go.uber.org/zap"
 	"k8sManagerApi/dao"
 	"k8sManagerApi/model"
 	"k8sManagerApi/utils"
@@ -24,7 +26,7 @@ func (a *auth) Register(user *UserCreate) (err error) {
 		Username: user.Username,
 		Password: md5Password,
 	}
-	dao.User.AddUser(newUser)
+	err = dao.User.AddUser(newUser)
 	if err != nil {
 		return err
 	}
@@ -48,6 +50,29 @@ func (a *auth) Login(username, password string) (token string, err error) {
 		return "", err
 	}
 	return token, nil
+}
+
+// ChangePwd 修改密码
+func (a *auth) ChangePwd(username, oldPwd, newPwd string) (err error) {
+	// 首先判断用户是否存在
+	user, err := dao.User.GetUserByName(username)
+	if err != nil {
+		zap.L().Error(fmt.Sprintf("change user password failed， err: user %v do not exist", username))
+		return errors.New(fmt.Sprintf("user %v do not exist", username))
+	}
+	// 如果用户存在，进行原始密码校验，将传入的密码进行md5加密，然后和数据库中的密码进行比较
+	if utils.ToMd5(oldPwd) != user.Password {
+		zap.L().Error(fmt.Sprintf("the user name or password is not correct"))
+		return errors.New(fmt.Sprintf("the user name or password is not correct"))
+	}
+	// 根据新密码生成对应的md5密码
+	md5Password := utils.ToMd5(newPwd)
+	// 调用数据库进行更新
+	if err := dao.User.ChangePassword(username, md5Password); err != nil {
+		zap.L().Error("update user password failed")
+		return errors.New("update user password failed")
+	}
+	return nil
 }
 
 // GetUser 查询用户

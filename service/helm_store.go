@@ -11,8 +11,10 @@ import (
 	"k8sManagerApi/config"
 	"k8sManagerApi/dao"
 	"k8sManagerApi/model"
+	"k8sManagerApi/utils"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -81,8 +83,8 @@ func (h *helmStore) DetailRelease(actionConfig *action.Configuration, release st
 	return data, nil
 }
 
-// InstallRelease 安装release, release: release的名字， chart：chart文件所在的路径
-func (h *helmStore) InstallRelease(actionConfig *action.Configuration, release, chart, namespace string) error {
+// InstallRelease 安装release, release: release的名字， chart：chart文件所在的路径, 上传
+func (h *helmStore) InstallRelease(actionConfig *action.Configuration, cluster, release, chart, namespace string) error {
 	client := action.NewInstall(actionConfig)
 	client.ReleaseName = release
 	// 这里的namespace没啥用，主要安装在哪个namespace还是要看actionConfig初始化的namespace
@@ -92,10 +94,15 @@ func (h *helmStore) InstallRelease(actionConfig *action.Configuration, release, 
 		//chart = config.UploadPath + "/" + chart
 		chart = config.Conf.UploadPath + chart
 	}
-	// 拼接网络路径
-	//chart = fmt.Sprintf("http://192.168.101.101:9091/download/%v", chart)
-	//fmt.Printf("下载的路径：%v\n", chart)
+	// 将文件传输到服务器上面
+	//destChartPath := filepath.Join("/tmp", chart)
+	//err := h.scpChartToServer(cluster, chart)
+	//if err != nil {
+	//	fmt.Println("err", err)
+	//}
+
 	// 加载chart文件，并基于文件内容生成k8的资源
+	chart = filepath.Join(config.Conf.UploadPath, chart)
 	chartRequested, err := loader.Load(chart)
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("加载Chart文件, %v", err.Error()))
@@ -164,6 +171,36 @@ func (h *helmStore) DeleteChartFile(chart string) error {
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("删除Chart文件失败, %v", err.Error()))
 		return errors.New(fmt.Sprintf("删除Chart文件失败, %v", err.Error()))
+	}
+	return nil
+}
+
+// 配置分发，现在没有使用
+// scpChartToServer 拷贝chart到服务器，这里都是上传到临时目录/tmp/下面，并返回上传后的 chart在服务器上的路径
+func (h *helmStore) scpChartToServer(cluster, chart string) (err error) {
+	// 根据传入的cluster去数据库中查询对应的集群IP地址。
+	ret, _ := dao.Node.GetNodeList(cluster)
+	for _, v := range ret {
+		// 循环集群中的每个node节点，将chart包传输到node节点的临时目录/tmp下面
+		sftp := utils.Cli{
+			Username: "root",
+			Password: "ives",
+			Host:     v.IP,
+			Port:     22,
+			Client:   nil,
+		}
+		// 进行连接
+		err := sftp.Connection()
+		if err != nil {
+			zap.L().Error("连接集群的node节点失败")
+		}
+		// 文件拷贝
+		srcChartPath := filepath.Join(config.Conf.UploadPath, chart)
+		destChartPath := filepath.Join("/tmp", chart)
+		err = sftp.ScpToServer(srcChartPath, destChartPath)
+		if err != nil {
+			zap.L().Error("向node节点传递chart包失败")
+		}
 	}
 	return nil
 }

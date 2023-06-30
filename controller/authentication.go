@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -58,7 +57,7 @@ func (a *auth) RegisterHandler(ctx *gin.Context) {
 		zap.L().Error(fmt.Sprintf("绑定参数失败, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  errors.New("绑定参数失败," + err.Error()),
+			"msg":  "绑定参数失败," + err.Error(),
 			"data": nil,
 		})
 		return
@@ -67,7 +66,7 @@ func (a *auth) RegisterHandler(ctx *gin.Context) {
 		zap.L().Error(fmt.Sprintf("create user failed, %v", err.Error()))
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"msg":  errors.New("create user failed," + err.Error()),
+			"msg":  "create user failed," + err.Error(),
 			"data": nil,
 		})
 		return
@@ -75,6 +74,41 @@ func (a *auth) RegisterHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"msg":  "create user success",
+		"data": nil,
+	})
+}
+
+// ChangePwdHandler 修改密码
+func (a *auth) ChangePwdHandler(ctx *gin.Context) {
+	params := new(struct {
+		Username string `json:"username"`
+		OldPwd   string `json:"old_pwd"`
+		NewPwd   string `json:"new_pwd"`
+	})
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		zap.L().Error(fmt.Sprintf("绑定参数失败, %v", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  "绑定参数失败," + err.Error(),
+			"data": nil,
+		})
+		return
+	}
+	// 调用service层进行密码修改
+	if err := service.Auth.ChangePwd(params.Username, params.OldPwd, params.NewPwd); err != nil {
+		zap.L().Error(fmt.Sprintf("change user password failed, %v", err.Error()))
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
+			"data": nil,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"msg":  "change user password success",
 		"data": nil,
 	})
 }

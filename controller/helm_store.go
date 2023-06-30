@@ -113,6 +113,7 @@ func (h *helmStore) InstallReleaseHandler(ctx *gin.Context) {
 		})
 		return
 	}
+	// 获取配置文件
 	actionConfig, err := service.HelmConfig.GetAc(params.Cluster, params.Namespace)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -122,7 +123,7 @@ func (h *helmStore) InstallReleaseHandler(ctx *gin.Context) {
 		})
 		return
 	}
-	err = service.HelmStore.InstallRelease(actionConfig, params.Release, params.Chart, params.Namespace)
+	err = service.HelmStore.InstallRelease(actionConfig, params.Cluster, params.Release, params.Chart, params.Namespace)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,

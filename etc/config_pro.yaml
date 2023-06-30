@@ -9,8 +9,8 @@ podLogTailLine: 2000
 # helm文件上传路径
 uploadPath: /Users/liyanjie/Documents/
 kubeConfigs:
-#  - name: TST-1
-#    path: /Users/liyanjie/Documents/config
+  - name: TST-1
+    path: /Users/liyanjie/Documents/config
 #  - name: TST-2
 #    path: /Users/liyanjie/Documents/configw
   - name: TST-3
