@@ -213,7 +213,16 @@ func (d *deployment) DeleteDeploymentHandler(ctx *gin.Context) {
 		})
 		return
 	}
-	// 调用Service层方法进行删除
+	//// 先调用Service层中的删除数据库中的Pod方法，进行删除数据库中的Pod信息
+	//if err := service.Pod.DelPodByDeployment(client, params.Cluster, params.DeploymentName, params.Namespace); err != nil {
+	//	ctx.JSON(http.StatusInternalServerError, gin.H{
+	//		"code": http.StatusInternalServerError,
+	//		"msg":  "failed, 删除数据库中的deployment资源的Pod失败",
+	//		"data": nil,
+	//	})
+	//	return
+	//}
+	// 再调用Service层方法进行删除集群中的资源
 	if err := service.Deployment.DeleteDeployment(client, params.DeploymentName, params.Namespace); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,

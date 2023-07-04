@@ -157,3 +157,5 @@ func addMap(mp map[string]int, resource string, num int) {
 	defer mt.Unlock()
 	mp[resource] = num
 }
+
+// 获取每个节点的所有pod信息

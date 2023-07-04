@@ -134,7 +134,7 @@ func (p *pod) DeletePodHandler(ctx *gin.Context) {
 		})
 		return
 	}
-	err = service.Pod.DeletePod(client, params.PodName, params.Namespace)
+	err = service.Pod.DeletePod(client, params.PodName, params.Namespace, params.Cluster)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -320,5 +320,37 @@ func (p *pod) GetPodNumberHandler(ctx *gin.Context) {
 		"code": http.StatusOK,
 		"msg":  "success, 获取每个namespace的pod数量成功",
 		"data": data,
+	})
+}
+
+// GetAllPodsInfoHandler 获取集群的所有Pod信息进行入库操作及可视化渲染使用
+func (p *pod) GetAllPodsInfoHandler(ctx *gin.Context) {
+	params := new(struct {
+		Cluster string `form:"cluster"`
+	})
+	if err := ctx.Bind(params); err != nil {
+		zap.L().Error(fmt.Sprintf("Bind绑定参数失败, %v", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  "Bind绑定参数失败" + err.Error(),
+			"data": nil,
+		})
+		return
+	}
+	client, err := service.K8s.GetClient(params.Cluster)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+			"data": nil,
+		})
+		return
+	}
+	service.Pod.GetAllPodsInfo(client, params.Cluster)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"msg":  "success, 获取所有的Pod信息成功",
+		"data": nil,
 	})
 }

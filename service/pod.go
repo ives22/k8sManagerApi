@@ -12,6 +12,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8sManagerApi/config"
+	"k8sManagerApi/dao"
+	"k8sManagerApi/model"
+	"time"
 )
 
 var Pod = &pod{}
@@ -95,12 +98,15 @@ func (p *pod) GetPodDetail(client *kubernetes.Clientset, podName, namespace stri
 }
 
 // DeletePod 删除Pod
-func (p *pod) DeletePod(client *kubernetes.Clientset, podName, namespace string) (err error) {
+func (p *pod) DeletePod(client *kubernetes.Clientset, podName, namespace, cluster string) (err error) {
 	err = client.CoreV1().Pods(namespace).Delete(context.TODO(), podName, metav1.DeleteOptions{})
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("删除Pod详情失败, %v", err.Error()))
 		return errors.New("删除Pod详情失败, " + err.Error())
 	}
+	//// 删除数据库中的Pod信息
+	//delPod := model.PodInfo{Cluster: cluster, PodName: podName}
+	//_ = dao.PodInfo.Del(&delPod)
 	return nil
 }
 
@@ -184,6 +190,56 @@ func (p *pod) GetPodNumPerNp(client *kubernetes.Clientset) (podsNps []*PodsNp, e
 		podsNps = append(podsNps, podsNp)
 	}
 	return podsNps, nil
+}
+
+// GetAllPodsInfo 获取集群的所有Pod信息进行入库操作
+func (p *pod) GetAllPodsInfo(client *kubernetes.Clientset, cluster string) {
+	// 获取所有的Pod信息
+	allPods, err := client.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		zap.L().Error(fmt.Sprintf("获取所有Pod信息失败, %v", err.Error()))
+		//return nil, errors.New("获取Namespace列表失败, " + err.Error())
+	}
+	for _, pod := range allPods.Items {
+		cTime := pod.CreationTimestamp.Time.Format("2006-01-02 15:04:05")
+		createTime, _ := time.Parse("2006-01-02 15:04:05", cTime)
+		p := &model.PodInfo{
+			Cluster:      cluster,
+			PodName:      pod.Name,
+			HostIP:       pod.Status.HostIP,
+			PodIP:        pod.Status.PodIP,
+			Status:       string(pod.Status.Phase),
+			CreationTime: createTime,
+		}
+		err := dao.PodInfo.Add(p)
+		if err != nil {
+			zap.L().Error(fmt.Sprintf("向数据库中添加Pod失败, %v", err))
+		}
+	}
+}
+
+// DelPodByDeployment 根据Deployment删除数据库中对应的Pod
+func (p *pod) DelPodByDeployment(client *kubernetes.Clientset, cluster, deploymentName, namespace string) (err error) {
+	// 首先根据去获取对应的deployment
+	zap.L().Error(fmt.Sprintf("%v, %v", deploymentName, namespace))
+	deploy, err := client.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
+	if err != nil {
+		zap.L().Error(fmt.Sprintf("获取deployment失败, %v", err.Error()))
+		return
+	}
+	// 获取deployment的标签选择器
+	labelSelector := deploy.Spec.Selector
+	// 根据标签选择器获取对应的pod
+	podList, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: metav1.FormatLabelSelector(labelSelector)})
+	for _, pod := range podList.Items {
+		delPod := model.PodInfo{Cluster: cluster, PodName: pod.Name}
+		fmt.Println("delpod, ", delPod)
+		if err := dao.PodInfo.Del(&delPod); err != nil {
+			zap.L().Error(fmt.Sprintf("删除%v中的Pod失败, %v", deploymentName, err))
+			return errors.New("删除Deployment中的Pod失败")
+		}
+	}
+	return nil
 }
 
 // 类型转换的方法，corev1.Pod -> DataCell, DataCell -> corev1.Pod

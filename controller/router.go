@@ -38,6 +38,8 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 	router.PUT("/api/k8s/pod/update", Pod.UpdatePodHandler)
 	// 删除Pod的路由，DELETE请求，路径为"/api/k8s/pod/del"，处理函数为Pod.DeletePodHandler
 	router.DELETE("/api/k8s/pod/del", Pod.DeletePodHandler)
+	// 获取集群的所有Pod信息的路由
+	router.GET("/api/k8s/pod/all", Pod.GetAllPodsInfoHandler)
 
 	// 以下为Deployment相关的路由和处理函数
 	// 获取所有Deployments的路由，GET请求，路径为"/api/k8s/deployments"，处理函数为Deployment.GetDeploymentsHandler
