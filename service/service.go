@@ -133,7 +133,6 @@ func (s *service) CreateService(client *kubernetes.Clientset, data *ServiceCreat
 	if len(data.ExternalIPs) > 0 {
 		serviced.Spec.ExternalIPs = data.ExternalIPs
 	}
-	fmt.Printf("整理好的数据：%s\n", serviced)
 	// 判断类型，默认创建为ClusterIP类型，这里如果是NodePort，则添加配置NodePort的配置
 	if data.Type == "NodePort" && data.NodePort != 0 {
 		serviced.Spec.Ports[0].NodePort = data.NodePort

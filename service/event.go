@@ -30,13 +30,16 @@ func (e *event) WatchEventTask(cluster string) {
 	// 监听资源
 	informer := informerFactory.Core().V1().Events()
 	// 添加事件handler
-	informer.Informer().AddEventHandler(
+	_, err := informer.Informer().AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				onAdd(obj, cluster)
 			},
 		},
 	)
+	if err != nil {
+		return
+	}
 	// 处理启动和优雅关闭
 	stopCh := make(chan struct{})
 	defer close(stopCh)

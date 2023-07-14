@@ -221,7 +221,7 @@ func (d *daemonSet) CreateDaemonSetHandler(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"msg":  "success, 创建Deployment成功",
+		"msg":  "success, 创建DaemonSet成功",
 		"data": nil,
 	})
 }

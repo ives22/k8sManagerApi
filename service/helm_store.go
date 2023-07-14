@@ -91,16 +91,8 @@ func (h *helmStore) InstallRelease(actionConfig *action.Configuration, cluster, 
 	client.Namespace = namespace
 	splitChart := strings.Split(chart, ".")
 	if splitChart[len(splitChart)-1] == "tgz" && strings.Contains(chart, ":") {
-		//chart = config.UploadPath + "/" + chart
 		chart = config.Conf.UploadPath + chart
 	}
-	// 将文件传输到服务器上面
-	//destChartPath := filepath.Join("/tmp", chart)
-	//err := h.scpChartToServer(cluster, chart)
-	//if err != nil {
-	//	fmt.Println("err", err)
-	//}
-
 	// 加载chart文件，并基于文件内容生成k8的资源
 	chart = filepath.Join(config.Conf.UploadPath, chart)
 	chartRequested, err := loader.Load(chart)
@@ -137,7 +129,6 @@ func (h *helmStore) UploadChartFile(file multipart.File, header *multipart.FileH
 		return errors.New(fmt.Sprintf("Chart文件必须以.tgz结尾"))
 	}
 
-	//filePath := config.UploadPath + "/" + filename
 	filePath := config.Conf.UploadPath + filename
 	_, err := os.Stat(filePath)
 	if os.IsExist(err) {

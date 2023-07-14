@@ -33,7 +33,7 @@ CREATE TABLE `k8s_event` (
 `namespace` varchar(255) DEFAULT NULL,
 `rtype` varchar(255) DEFAULT NULL,
 `reason` varchar(255) DEFAULT NULL,
-`message` varchar(255) DEFAULT NULL,
+`message` varchar(1024) DEFAULT NULL,
 `event_time` datetime DEFAULT NULL,
 `cluster` varchar(64) DEFAULT NULL,
 `created_at` datetime DEFAULT NULL,
